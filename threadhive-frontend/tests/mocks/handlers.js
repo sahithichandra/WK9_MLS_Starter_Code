@@ -7,7 +7,7 @@ import {
   mockAuthResponse,
 } from './mockData';
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'http://localhost:8000/api';
 
 export const handlers = [
   // Auth endpoints
@@ -34,7 +34,7 @@ export const handlers = [
       );
     }
 
-    return HttpResponse.json(mockAuthResponse.register);
+    return HttpResponse.json({ data: mockAuthResponse.register });
   }),
 
   // Thread endpoints

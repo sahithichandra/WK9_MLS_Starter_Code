@@ -7,6 +7,7 @@ import subredditReducer, {
 describe('subredditSlice', () => {
   const initialState = {
     subreddits: [],
+    subredditData: null,
     loading: false,
     error: null,
   };
@@ -26,6 +27,7 @@ describe('subredditSlice', () => {
           { _id: '1', name: 'JavaScript', subscribers: 1000 },
           { _id: '2', name: 'Python', subscribers: 2000 },
         ],
+        subredditData: { _id: '1', name: 'JavaScript', threads: [] },
         loading: true,
         error: 'Some error',
       };
@@ -77,6 +79,7 @@ describe('subredditSlice', () => {
         subreddits: [
           { _id: '1', name: 'OldSubreddit', subscribers: 100 },
         ],
+        subredditData: null,
         loading: false,
         error: null,
       };
@@ -110,6 +113,7 @@ describe('subredditSlice', () => {
     it('should clear error on pending', () => {
       const previousState = {
         subreddits: [],
+        subredditData: null,
         loading: false,
         error: 'Previous error',
       };
