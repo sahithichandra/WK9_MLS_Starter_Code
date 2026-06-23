@@ -5,6 +5,7 @@ import {
   fetchSubreddits as fetchSubredditsThunk,
   createSubreddit as createSubredditThunk,
 } from "../../reducers/subredditSlice";
+import { rephraseText } from "../../services/threadService.js";
 import { Form } from "react-bootstrap";
 import "./CreateThreadForm.css";
 
@@ -17,9 +18,46 @@ export default function CreateThreadForm({ onClose }) {
   const [newSubredditName, setNewSubredditName] = useState("");
   const [newSubredditDescription, setNewSubredditDescription] = useState("");
 
+  const [rephrasedTitle, setRephrasedTitle] = useState(null);
+  const [rephrasedContent, setRephrasedContent] = useState(null);
+  const [rephraseLoadingTitle, setRephraseLoadingTitle] = useState(false);
+  const [rephraseLoadingContent, setRephraseLoadingContent] = useState(false);
+  const [rephraseErrorTitle, setRephraseErrorTitle] = useState(null);
+  const [rephraseErrorContent, setRephraseErrorContent] = useState(null);
+
   useEffect(() => {
     dispatch(fetchSubredditsThunk());
   }, [dispatch]);
+
+  const handleRephrase = async (field) => {
+    const text = field === 'title' ? title : content;
+    const setLoading = field === 'title' ? setRephraseLoadingTitle : setRephraseLoadingContent;
+    const setRephrased = field === 'title' ? setRephrasedTitle : setRephrasedContent;
+    const setError = field === 'title' ? setRephraseErrorTitle : setRephraseErrorContent;
+
+    setLoading(true);
+    setError(null);
+    setRephrased(null);
+    try {
+      const result = await rephraseText(text);
+      setRephrased(result);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "";
+      const normalized = msg.toLowerCase();
+
+      if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+        setError("AI quota exceeded. Please try again later.");
+      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
+        setError("AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.");
+      } else if (normalized.includes("model") || normalized.includes("unavailable")) {
+        setError("AI model is currently unavailable. Please try again in a moment.");
+      } else {
+        setError("Failed to rephrase. Your original text has been preserved.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNewSubredditChange = (value) => {
     setNewSubredditName(value);
@@ -100,6 +138,41 @@ export default function CreateThreadForm({ onClose }) {
             onChange={(e) => setTitle(e.target.value)}
             required
           />
+          <div className="rephrase-section">
+            <button
+              type="button"
+              className="form-btn form-btn-secondary form-btn-sm"
+              onClick={() => handleRephrase('title')}
+              disabled={!title.trim() || rephraseLoadingTitle}
+            >
+              {rephraseLoadingTitle ? '⏳ Rephrasing...' : '✨ Rephrase with AI'}
+            </button>
+            {rephraseErrorTitle && (
+              <p className="rephrase-error">{rephraseErrorTitle}</p>
+            )}
+            {rephrasedTitle && (
+              <div className="rephrase-preview-card">
+                <p className="rephrase-preview-label">Rephrased version:</p>
+                <p className="rephrase-preview-text">{rephrasedTitle}</p>
+                <div className="rephrase-preview-actions">
+                  <button
+                    type="button"
+                    className="form-btn form-btn-primary form-btn-sm"
+                    onClick={() => { setTitle(rephrasedTitle); setRephrasedTitle(null); }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    className="form-btn form-btn-secondary form-btn-sm"
+                    onClick={() => setRephrasedTitle(null)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content */}
@@ -113,6 +186,41 @@ export default function CreateThreadForm({ onClose }) {
             onChange={(e) => setContent(e.target.value)}
             required
           />
+          <div className="rephrase-section">
+            <button
+              type="button"
+              className="form-btn form-btn-secondary form-btn-sm"
+              onClick={() => handleRephrase('content')}
+              disabled={!content.trim() || rephraseLoadingContent}
+            >
+              {rephraseLoadingContent ? '⏳ Rephrasing...' : '✨ Rephrase with AI'}
+            </button>
+            {rephraseErrorContent && (
+              <p className="rephrase-error">{rephraseErrorContent}</p>
+            )}
+            {rephrasedContent && (
+              <div className="rephrase-preview-card">
+                <p className="rephrase-preview-label">Rephrased version:</p>
+                <p className="rephrase-preview-text">{rephrasedContent}</p>
+                <div className="rephrase-preview-actions">
+                  <button
+                    type="button"
+                    className="form-btn form-btn-primary form-btn-sm"
+                    onClick={() => { setContent(rephrasedContent); setRephrasedContent(null); }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    className="form-btn form-btn-secondary form-btn-sm"
+                    onClick={() => setRephrasedContent(null)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Subreddit Selection */}

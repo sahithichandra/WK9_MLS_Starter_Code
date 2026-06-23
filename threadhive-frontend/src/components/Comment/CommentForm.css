@@ -41,3 +41,34 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.rephrase-btn {
+  font-size: 0.85rem;
+}
+
+.rephrase-alert {
+  font-size: 0.85rem;
+}
+
+.rephrase-preview-card {
+  background-color: var(--bg-light, #F8F9FA);
+  border: 1px dashed var(--primary-blue, #0079D3);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.rephrase-preview-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #6c757d);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rephrase-preview-text {
+  font-size: 0.9rem;
+  color: var(--text-dark, #1A1A1B);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}

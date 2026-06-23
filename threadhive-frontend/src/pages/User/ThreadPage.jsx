@@ -15,6 +15,7 @@ import ThreadCard from "../../components/ThreadList/ThreadCard";
 import CommentForm from "../../components/Comment/CommentForm";
 import CommentList from "../../components/Comment/CommentList";
 import { Container, Card, Button, Spinner, Alert } from "react-bootstrap";
+import { summarizeThread } from "../../services/threadService.js";
 import "./ThreadPage.css";
 
 export default function Thread() {
@@ -23,6 +24,9 @@ export default function Thread() {
   const dispatch = useDispatch();
 
   const [commentText, setCommentText] = useState("");
+  const [summary, setSummary] = useState(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
 
   const {
     thread,
@@ -47,6 +51,19 @@ export default function Thread() {
       dispatch(clearComments());
     };
   }, [dispatch, threadId]);
+
+  const handleSummarize = async () => {
+    setSummarizing(true);
+    setSummaryError(null);
+    try {
+      const text = await summarizeThread(threadId);
+      setSummary(text);
+    } catch (err) {
+      setSummaryError("Failed to generate summary. Please try again.");
+    } finally {
+      setSummarizing(false);
+    }
+  };
 
   const handlePostComment = () => {
     if (!commentText.trim()) return;
@@ -92,6 +109,39 @@ export default function Thread() {
       {/* Thread Card */}
       <div className="mb-4">
         <ThreadCard thread={thread} goBack={() => navigate(-1)} />
+      </div>
+
+      {/* AI Summary */}
+      <div className="mb-4">
+        <Button
+          variant="outline-primary"
+          onClick={handleSummarize}
+          disabled={summarizing}
+        >
+          {summarizing ? (
+            <>
+              <Spinner animation="border" size="sm" className="me-2" />
+              Summarizing...
+            </>
+          ) : (
+            "Summarize"
+          )}
+        </Button>
+
+        {summaryError && (
+          <Alert variant="danger" className="mt-3 mb-0">
+            {summaryError}
+          </Alert>
+        )}
+
+        {summary && !summaryError && (
+          <Card className="mt-3">
+            <Card.Body>
+              <Card.Title>AI Summary</Card.Title>
+              <Card.Text>{summary}</Card.Text>
+            </Card.Body>
+          </Card>
+        )}
       </div>
 
       {/* Post Comment Input */}

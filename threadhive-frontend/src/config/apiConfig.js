@@ -14,6 +14,8 @@ export const THREAD_API = {
   CREATE: '/threads',
   UPVOTE: (id) => `/threads/${id}/upvote`,
   DOWNVOTE: (id) => `/threads/${id}/downvote`,
+  SUMMARIZE: (id) => `/threads/${id}/summarize`,
+  REPHRASE: '/threads/rephrase',
 };
 
 // Comment API Endpoints

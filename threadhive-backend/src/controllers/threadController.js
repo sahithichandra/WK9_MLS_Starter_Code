@@ -5,6 +5,8 @@ import {
   updateThreadById,
   deleteThreadById,
 } from "../services/threadService.js";
+import { getCommentsByThread } from "../services/commentService.js";
+import { summarizeThreadWithGemini, rephraseText as rephraseWithGemini } from "../services/geminiService.js";
 import { createAppError } from "../utils/createAppError.js";
 
 // GET /api/threads
@@ -67,5 +69,31 @@ export const deleteThread = async (req, res) => {
     success: true,
     message: "Thread deleted successfully",
     data: deletedThread,
+  });
+};
+
+// POST /api/threads/rephrase
+export const rephraseText = async (req, res) => {
+  const { text } = req.body;
+  if (!text?.trim()) {
+    throw createAppError("Text is required for rephrasing.", 400);
+  }
+  const rephrased = await rephraseWithGemini(text);
+  res.status(200).json({
+    success: true,
+    message: "Text rephrased successfully",
+    data: { rephrased },
+  });
+};
+
+// POST /api/threads/:id/summarize
+export const summarizeThread = async (req, res) => {
+  const thread = await fetchThreadById(req.params.id);
+  const comments = await getCommentsByThread(req.params.id);
+  const summary = await summarizeThreadWithGemini(thread, comments);
+  res.status(200).json({
+    success: true,
+    message: "Thread summarized successfully",
+    data: { summary },
   });
 };
