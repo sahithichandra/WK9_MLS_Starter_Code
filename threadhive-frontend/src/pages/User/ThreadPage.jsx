@@ -15,7 +15,7 @@ import ThreadCard from "../../components/ThreadList/ThreadCard";
 import CommentForm from "../../components/Comment/CommentForm";
 import CommentList from "../../components/Comment/CommentList";
 import { Container, Card, Button, Spinner, Alert } from "react-bootstrap";
-import { summarizeThread, summarizeAnswers } from "../../services/threadService.js";
+import { summarizeAnswers } from "../../services/threadService.js";
 import "./ThreadPage.css";
 
 export default function Thread() {
@@ -24,10 +24,7 @@ export default function Thread() {
   const dispatch = useDispatch();
 
   const [commentText, setCommentText] = useState("");
-  const [summary, setSummary] = useState(null);
-  const [summarizing, setSummarizing] = useState(false);
-  const [summaryError, setSummaryError] = useState(null);
-  
+
   const [answerSummary, setAnswerSummary] = useState(null);
   const [answerSummarizing, setAnswerSummarizing] = useState(false);
   const [answerSummaryError, setAnswerSummaryError] = useState(null);
@@ -57,23 +54,6 @@ export default function Thread() {
       dispatch(clearComments());
     };
   }, [dispatch, threadId]);
-
-  const handleSummarize = async () => {
-    setSummarizing(true);
-    setSummaryError(null);
-    try {
-      const text = await summarizeThread(threadId);
-      setSummary(text);
-    } catch (err) {
-      if (err?.response?.status === 401) {
-        setSummaryError("Session expired or invalid. Please log in again.");
-      } else {
-        setSummaryError("Failed to generate summary. Please try again.");
-      }
-    } finally {
-      setSummarizing(false);
-    }
-  };
 
   const handleSummarizeAnswers = async () => {
     setAnswerSummarizing(true);
@@ -147,37 +127,6 @@ export default function Thread() {
       {/* Thread Card */}
       <div className="mb-4">
         <ThreadCard thread={thread} goBack={() => navigate(-1)} />
-      </div>
-
-      {/* AI Summary */}
-      <div className="mb-4">
-        {summary ? (
-          <Alert variant="info" className="mb-0" dismissible onClose={() => setSummary(null)}>
-            <Alert.Heading className="mb-2">AI Summary</Alert.Heading>
-            <p className="mb-0">{summary}</p>
-          </Alert>
-        ) : (
-          <Button
-            variant="outline-primary"
-            onClick={handleSummarize}
-            disabled={summarizing}
-          >
-            {summarizing ? (
-              <>
-                <Spinner animation="border" size="sm" className="me-2" />
-                Summarizing...
-              </>
-            ) : (
-              "Summarize"
-            )}
-          </Button>
-        )}
-
-        {!summary && summaryError && (
-          <Alert variant="danger" className="mt-3 mb-0">
-            {summaryError}
-          </Alert>
-        )}
       </div>
 
       {/* Post Comment Input */}
