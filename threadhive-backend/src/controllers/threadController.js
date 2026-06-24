@@ -6,7 +6,12 @@ import {
   deleteThreadById,
 } from "../services/threadService.js";
 import { getCommentsByThread } from "../services/commentService.js";
-import { summarizeThreadWithGemini, rephraseText as rephraseWithGemini, improveQuestion, summarizeAnswers } from "../services/geminiService.js";
+import {
+  summarizeThreadWithGemini,
+  rephraseText as rephraseWithGemini,
+  improveQuestion,
+  summarizeAnswers,
+} from "../services/geminiService.js";
 import { createAppError } from "../utils/createAppError.js";
 
 // GET /api/threads
@@ -34,7 +39,7 @@ export const createThread = async (req, res) => {
   const { title, content, subreddit } = req.body;
   const author = req.user.userId;
 
-  if(!title || !content || !subreddit) {
+  if (!title || !content || !subreddit) {
     throw createAppError("Title, content, and subreddit are required.", 400);
   }
 
@@ -101,9 +106,12 @@ export const summarizeThread = async (req, res) => {
 // POST /api/threads/improve-question
 export const improveQuestionController = async (req, res) => {
   const { title, description, tags } = req.body;
-  
+
   if (!title?.trim() || !description?.trim()) {
-    throw createAppError("Title and description are required for improvement.", 400);
+    throw createAppError(
+      "Title and description are required for improvement.",
+      400,
+    );
   }
 
   const improvements = await improveQuestion(title, description, tags || "");
@@ -120,7 +128,10 @@ export const summarizeAnswersController = async (req, res) => {
   const comments = await getCommentsByThread(req.params.id);
 
   if (comments.length < 3) {
-    throw createAppError("At least 3 answers are required for summarization.", 400);
+    throw createAppError(
+      "At least 3 answers are required for summarization.",
+      400,
+    );
   }
 
   const summary = await summarizeAnswers(thread.title, comments);

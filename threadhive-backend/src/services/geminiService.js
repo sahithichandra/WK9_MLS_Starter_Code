@@ -22,11 +22,18 @@ const extractModelText = (response) => {
 const mapGeminiError = (error, action) => {
   const rawMessage = error?.message || "Unknown Gemini API error";
 
-  if (rawMessage.includes("RESOURCE_EXHAUSTED") || rawMessage.includes("quota")) {
+  if (
+    rawMessage.includes("RESOURCE_EXHAUSTED") ||
+    rawMessage.includes("quota")
+  ) {
     return new Error("Gemini quota exceeded. Please try again later.");
   }
 
-  if (rawMessage.includes("API key") || rawMessage.includes("API_KEY") || rawMessage.includes("GEMINI_API_KEY")) {
+  if (
+    rawMessage.includes("API key") ||
+    rawMessage.includes("API_KEY") ||
+    rawMessage.includes("GEMINI_API_KEY")
+  ) {
     return new Error("Gemini API key is invalid or missing.");
   }
 
@@ -65,7 +72,7 @@ export const summarizeThreadWithGemini = async (thread, comments) => {
       ? comments
           .map(
             (c, i) =>
-              `Comment ${i + 1} by ${c.user?.name || "Unknown"}: ${c.content}`
+              `Comment ${i + 1} by ${c.user?.name || "Unknown"}: ${c.content}`,
           )
           .join("\n")
       : "No comments yet.";
@@ -137,7 +144,7 @@ export const summarizeAnswers = async (questionTitle, answers) => {
       ? answers
           .map(
             (a, i) =>
-              `Answer ${i + 1} by ${a.user?.name || "Unknown"}: ${a.content}`
+              `Answer ${i + 1} by ${a.user?.name || "Unknown"}: ${a.content}`,
           )
           .join("\n\n")
       : "No answers yet.";
