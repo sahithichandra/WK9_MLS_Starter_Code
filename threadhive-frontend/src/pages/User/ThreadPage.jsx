@@ -15,7 +15,7 @@ import ThreadCard from "../../components/ThreadList/ThreadCard";
 import CommentForm from "../../components/Comment/CommentForm";
 import CommentList from "../../components/Comment/CommentList";
 import { Container, Card, Button, Spinner, Alert } from "react-bootstrap";
-import { summarizeThread } from "../../services/threadService.js";
+import { summarizeThread, summarizeAnswers } from "../../services/threadService.js";
 import "./ThreadPage.css";
 
 export default function Thread() {
@@ -27,6 +27,10 @@ export default function Thread() {
   const [summary, setSummary] = useState(null);
   const [summarizing, setSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
+  
+  const [answerSummary, setAnswerSummary] = useState(null);
+  const [answerSummarizing, setAnswerSummarizing] = useState(false);
+  const [answerSummaryError, setAnswerSummaryError] = useState(null);
 
   const {
     thread,
@@ -39,6 +43,8 @@ export default function Thread() {
     loading: commentsLoading,
     error: commentsError,
   } = useSelector((state) => state.comments);
+
+  const { user: currentUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (threadId) {
@@ -59,9 +65,41 @@ export default function Thread() {
       const text = await summarizeThread(threadId);
       setSummary(text);
     } catch (err) {
-      setSummaryError("Failed to generate summary. Please try again.");
+      if (err?.response?.status === 401) {
+        setSummaryError("Session expired or invalid. Please log in again.");
+      } else {
+        setSummaryError("Failed to generate summary. Please try again.");
+      }
     } finally {
       setSummarizing(false);
+    }
+  };
+
+  const handleSummarizeAnswers = async () => {
+    setAnswerSummarizing(true);
+    setAnswerSummaryError(null);
+    try {
+      const text = await summarizeAnswers(threadId);
+      setAnswerSummary(text);
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        setAnswerSummaryError("Session expired or invalid. Please log in again.");
+        return;
+      }
+      const msg = err?.response?.data?.message || err?.message || "";
+      const normalized = msg.toLowerCase();
+
+      if (normalized.includes("at least 3")) {
+        setAnswerSummaryError("At least 3 answers are required for summarization.");
+      } else if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+        setAnswerSummaryError("AI quota exceeded. Please try again later.");
+      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
+        setAnswerSummaryError("AI is not configured on the server.");
+      } else {
+        setAnswerSummaryError("Failed to generate answer summary. Please try again.");
+      }
+    } finally {
+      setAnswerSummarizing(false);
     }
   };
 
@@ -113,34 +151,32 @@ export default function Thread() {
 
       {/* AI Summary */}
       <div className="mb-4">
-        <Button
-          variant="outline-primary"
-          onClick={handleSummarize}
-          disabled={summarizing}
-        >
-          {summarizing ? (
-            <>
-              <Spinner animation="border" size="sm" className="me-2" />
-              Summarizing...
-            </>
-          ) : (
-            "Summarize"
-          )}
-        </Button>
+        {summary ? (
+          <Alert variant="info" className="mb-0" dismissible onClose={() => setSummary(null)}>
+            <Alert.Heading className="mb-2">AI Summary</Alert.Heading>
+            <p className="mb-0">{summary}</p>
+          </Alert>
+        ) : (
+          <Button
+            variant="outline-primary"
+            onClick={handleSummarize}
+            disabled={summarizing}
+          >
+            {summarizing ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Summarizing...
+              </>
+            ) : (
+              "Summarize"
+            )}
+          </Button>
+        )}
 
-        {summaryError && (
+        {!summary && summaryError && (
           <Alert variant="danger" className="mt-3 mb-0">
             {summaryError}
           </Alert>
-        )}
-
-        {summary && !summaryError && (
-          <Card className="mt-3">
-            <Card.Body>
-              <Card.Title>AI Summary</Card.Title>
-              <Card.Text>{summary}</Card.Text>
-            </Card.Body>
-          </Card>
         )}
       </div>
 
@@ -151,6 +187,44 @@ export default function Thread() {
         onPostComment={handlePostComment}
         disabled={!commentText.trim()}
       />
+
+      {/* Answer Summary Section */}
+      {currentUser && threadComments.length >= 3 && !answerSummary && (
+        <div className="mb-4">
+          <Button
+            variant="outline-info"
+            onClick={handleSummarizeAnswers}
+            disabled={answerSummarizing}
+          >
+            {answerSummarizing ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Summarizing Answers...
+              </>
+            ) : (
+              "📋 Summarize Answers (TL;DR)"
+            )}
+          </Button>
+
+          {answerSummaryError && (
+            <Alert variant="danger" className="mt-3 mb-0">
+              {answerSummaryError}
+            </Alert>
+          )}
+        </div>
+      )}
+
+      {answerSummary && (
+        <Alert
+          variant="info"
+          className="mb-4"
+          dismissible
+          onClose={() => setAnswerSummary(null)}
+        >
+          <Alert.Heading className="mb-2">📋 Answer Summary (TL;DR)</Alert.Heading>
+          <p className="mb-0">{answerSummary}</p>
+        </Alert>
+      )}
 
       {/* Comments Section */}
       <section className="mb-5">

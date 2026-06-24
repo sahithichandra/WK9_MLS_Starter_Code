@@ -5,7 +5,7 @@ import {
   fetchSubreddits as fetchSubredditsThunk,
   createSubreddit as createSubredditThunk,
 } from "../../reducers/subredditSlice";
-import { rephraseText } from "../../services/threadService.js";
+import { rephraseText, improveQuestion } from "../../services/threadService.js";
 import { Form } from "react-bootstrap";
 import "./CreateThreadForm.css";
 
@@ -14,6 +14,7 @@ export default function CreateThreadForm({ onClose }) {
   const { subreddits } = useSelector((state) => state.subreddits);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
   const [subredditId, setSubredditId] = useState("");
   const [newSubredditName, setNewSubredditName] = useState("");
   const [newSubredditDescription, setNewSubredditDescription] = useState("");
@@ -24,6 +25,12 @@ export default function CreateThreadForm({ onClose }) {
   const [rephraseLoadingContent, setRephraseLoadingContent] = useState(false);
   const [rephraseErrorTitle, setRephraseErrorTitle] = useState(null);
   const [rephraseErrorContent, setRephraseErrorContent] = useState(null);
+
+  const [improvedTitle, setImprovedTitle] = useState(null);
+  const [improvedDescription, setImprovedDescription] = useState(null);
+  const [improvedTags, setImprovedTags] = useState(null);
+  const [improveLoading, setImproveLoading] = useState(false);
+  const [improveError, setImproveError] = useState(null);
 
   useEffect(() => {
     dispatch(fetchSubredditsThunk());
@@ -42,6 +49,10 @@ export default function CreateThreadForm({ onClose }) {
       const result = await rephraseText(text);
       setRephrased(result);
     } catch (err) {
+      if (err?.response?.status === 401) {
+        setError("Session expired or invalid. Please log in again.");
+        return;
+      }
       const msg = err?.response?.data?.message || err?.message || "";
       const normalized = msg.toLowerCase();
 
@@ -56,6 +67,45 @@ export default function CreateThreadForm({ onClose }) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImproveQuestion = async () => {
+    if (!title.trim() || !content.trim() || !tags.trim()) {
+      setImproveError("Please fill in title, description, and tags first.");
+      return;
+    }
+
+    setImproveLoading(true);
+    setImproveError(null);
+    setImprovedTitle(null);
+    setImprovedDescription(null);
+    setImprovedTags(null);
+
+    try {
+      const improvements = await improveQuestion(title, content, tags);
+      setImprovedTitle(improvements.improvedTitle);
+      setImprovedDescription(improvements.improvedDescription);
+      setImprovedTags(improvements.improvedTags);
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        setImproveError("Session expired or invalid. Please log in again.");
+        return;
+      }
+      const msg = err?.response?.data?.message || err?.message || "";
+      const normalized = msg.toLowerCase();
+
+      if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+        setImproveError("AI quota exceeded. Please try again later.");
+      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
+        setImproveError("AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.");
+      } else if (normalized.includes("model") || normalized.includes("unavailable")) {
+        setImproveError("AI model is currently unavailable. Please try again in a moment.");
+      } else {
+        setImproveError("Failed to improve question. Your original text has been preserved.");
+      }
+    } finally {
+      setImproveLoading(false);
     }
   };
 
@@ -172,6 +222,29 @@ export default function CreateThreadForm({ onClose }) {
                 </div>
               </div>
             )}
+
+            {improvedTitle && (
+              <div className="rephrase-preview-card">
+                <p className="rephrase-preview-label">Improved title:</p>
+                <p className="rephrase-preview-text">{improvedTitle}</p>
+                <div className="rephrase-preview-actions">
+                  <button
+                    type="button"
+                    className="form-btn form-btn-primary form-btn-sm"
+                    onClick={() => { setTitle(improvedTitle); setImprovedTitle(null); }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    className="form-btn form-btn-secondary form-btn-sm"
+                    onClick={() => setImprovedTitle(null)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -220,7 +293,83 @@ export default function CreateThreadForm({ onClose }) {
                 </div>
               </div>
             )}
+
+            {improvedDescription && (
+              <div className="rephrase-preview-card">
+                <p className="rephrase-preview-label">Improved description:</p>
+                <p className="rephrase-preview-text">{improvedDescription}</p>
+                <div className="rephrase-preview-actions">
+                  <button
+                    type="button"
+                    className="form-btn form-btn-primary form-btn-sm"
+                    onClick={() => { setContent(improvedDescription); setImprovedDescription(null); }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    className="form-btn form-btn-secondary form-btn-sm"
+                    onClick={() => setImprovedDescription(null)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Tags */}
+        <div className="form-group-custom">
+          <label className="form-label-custom">Tags</label>
+          <input
+            type="text"
+            className="form-control-custom"
+            placeholder="e.g. react, state, hooks"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            required
+          />
+          <p className="form-hint">Add comma-separated tags for the question.</p>
+
+          {improvedTags && (
+            <div className="rephrase-preview-card">
+              <p className="rephrase-preview-label">Improved tags:</p>
+              <p className="rephrase-preview-text">{improvedTags}</p>
+              <div className="rephrase-preview-actions">
+                <button
+                  type="button"
+                  className="form-btn form-btn-primary form-btn-sm"
+                  onClick={() => { setTags(improvedTags); setImprovedTags(null); }}
+                >
+                  Accept
+                </button>
+                <button
+                  type="button"
+                  className="form-btn form-btn-secondary form-btn-sm"
+                  onClick={() => setImprovedTags(null)}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="form-group-custom">
+          <label className="form-label-custom">Improve Your Question</label>
+          <p className="form-hint">Generate suggestions for title, description, and tags in one AI call.</p>
+          <button
+            type="button"
+            className="form-btn form-btn-secondary"
+            onClick={handleImproveQuestion}
+            disabled={!title.trim() || !content.trim() || !tags.trim() || improveLoading}
+          >
+            {improveLoading ? '⏳ Improving...' : '🚀 Get AI Suggestions'}
+          </button>
+          {improveError && (
+            <p className="rephrase-error">{improveError}</p>
+          )}
         </div>
 
         {/* Subreddit Selection */}

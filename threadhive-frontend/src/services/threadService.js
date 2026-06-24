@@ -48,9 +48,23 @@ export const summarizeThread = async (threadId) => {
   return res.data.data.summary;
 };
 
+export const improveQuestion = async (title, description, tags) => {
+  const res = await axiosInstance.post(THREAD_API.IMPROVE_QUESTION, { title, description, tags }, {
+    headers: getAuthHeaders(),
+  });
+  return res.data.data;
+};
+
 export const rephraseText = async (text) => {
   const res = await axiosInstance.post(THREAD_API.REPHRASE, { text }, {
     headers: getAuthHeaders(),
   });
   return res.data.data.rephrased;
+};
+
+export const summarizeAnswers = async (threadId) => {
+  const res = await axiosInstance.post(THREAD_API.SUMMARIZE_ANSWERS(threadId), null, {
+    headers: getAuthHeaders(),
+  });
+  return res.data.data.summary;
 };
