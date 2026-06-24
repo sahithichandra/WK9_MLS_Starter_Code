@@ -63,20 +63,32 @@ export default function Thread() {
       setAnswerSummary(text);
     } catch (err) {
       if (err?.response?.status === 401) {
-        setAnswerSummaryError("Session expired or invalid. Please log in again.");
+        setAnswerSummaryError(
+          "Session expired or invalid. Please log in again.",
+        );
         return;
       }
       const msg = err?.response?.data?.message || err?.message || "";
       const normalized = msg.toLowerCase();
 
       if (normalized.includes("at least 3")) {
-        setAnswerSummaryError("At least 3 answers are required for summarization.");
-      } else if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+        setAnswerSummaryError(
+          "At least 3 answers are required for summarization.",
+        );
+      } else if (
+        normalized.includes("quota") ||
+        normalized.includes("resource_exhausted")
+      ) {
         setAnswerSummaryError("AI quota exceeded. Please try again later.");
-      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
+      } else if (
+        normalized.includes("api key") ||
+        normalized.includes("gemini_api_key")
+      ) {
         setAnswerSummaryError("AI is not configured on the server.");
       } else {
-        setAnswerSummaryError("Failed to generate answer summary. Please try again.");
+        setAnswerSummaryError(
+          "Failed to generate answer summary. Please try again.",
+        );
       }
     } finally {
       setAnswerSummarizing(false);
@@ -170,7 +182,9 @@ export default function Thread() {
           dismissible
           onClose={() => setAnswerSummary(null)}
         >
-          <Alert.Heading className="mb-2">📋 Answer Summary (TL;DR)</Alert.Heading>
+          <Alert.Heading className="mb-2">
+            📋 Answer Summary (TL;DR)
+          </Alert.Heading>
           <p className="mb-0">{answerSummary}</p>
         </Alert>
       )}

@@ -37,10 +37,13 @@ export default function CreateThreadForm({ onClose }) {
   }, [dispatch]);
 
   const handleRephrase = async (field) => {
-    const text = field === 'title' ? title : content;
-    const setLoading = field === 'title' ? setRephraseLoadingTitle : setRephraseLoadingContent;
-    const setRephrased = field === 'title' ? setRephrasedTitle : setRephrasedContent;
-    const setError = field === 'title' ? setRephraseErrorTitle : setRephraseErrorContent;
+    const text = field === "title" ? title : content;
+    const setLoading =
+      field === "title" ? setRephraseLoadingTitle : setRephraseLoadingContent;
+    const setRephrased =
+      field === "title" ? setRephrasedTitle : setRephrasedContent;
+    const setError =
+      field === "title" ? setRephraseErrorTitle : setRephraseErrorContent;
 
     setLoading(true);
     setError(null);
@@ -56,12 +59,25 @@ export default function CreateThreadForm({ onClose }) {
       const msg = err?.response?.data?.message || err?.message || "";
       const normalized = msg.toLowerCase();
 
-      if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+      if (
+        normalized.includes("quota") ||
+        normalized.includes("resource_exhausted")
+      ) {
         setError("AI quota exceeded. Please try again later.");
-      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
-        setError("AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.");
-      } else if (normalized.includes("model") || normalized.includes("unavailable")) {
-        setError("AI model is currently unavailable. Please try again in a moment.");
+      } else if (
+        normalized.includes("api key") ||
+        normalized.includes("gemini_api_key")
+      ) {
+        setError(
+          "AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.",
+        );
+      } else if (
+        normalized.includes("model") ||
+        normalized.includes("unavailable")
+      ) {
+        setError(
+          "AI model is currently unavailable. Please try again in a moment.",
+        );
       } else {
         setError("Failed to rephrase. Your original text has been preserved.");
       }
@@ -95,14 +111,29 @@ export default function CreateThreadForm({ onClose }) {
       const msg = err?.response?.data?.message || err?.message || "";
       const normalized = msg.toLowerCase();
 
-      if (normalized.includes("quota") || normalized.includes("resource_exhausted")) {
+      if (
+        normalized.includes("quota") ||
+        normalized.includes("resource_exhausted")
+      ) {
         setImproveError("AI quota exceeded. Please try again later.");
-      } else if (normalized.includes("api key") || normalized.includes("gemini_api_key")) {
-        setImproveError("AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.");
-      } else if (normalized.includes("model") || normalized.includes("unavailable")) {
-        setImproveError("AI model is currently unavailable. Please try again in a moment.");
+      } else if (
+        normalized.includes("api key") ||
+        normalized.includes("gemini_api_key")
+      ) {
+        setImproveError(
+          "AI is not configured on the server. Ask the admin to set GEMINI_API_KEY.",
+        );
+      } else if (
+        normalized.includes("model") ||
+        normalized.includes("unavailable")
+      ) {
+        setImproveError(
+          "AI model is currently unavailable. Please try again in a moment.",
+        );
       } else {
-        setImproveError("Failed to improve question. Your original text has been preserved.");
+        setImproveError(
+          "Failed to improve question. Your original text has been preserved.",
+        );
       }
     } finally {
       setImproveLoading(false);
@@ -192,10 +223,12 @@ export default function CreateThreadForm({ onClose }) {
             <button
               type="button"
               className="form-btn form-btn-secondary form-btn-sm"
-              onClick={() => handleRephrase('title')}
+              onClick={() => handleRephrase("title")}
               disabled={!title.trim() || rephraseLoadingTitle}
             >
-              {rephraseLoadingTitle ? '⏳ Rephrasing...' : '✨ Rephrase with AI'}
+              {rephraseLoadingTitle
+                ? "⏳ Rephrasing..."
+                : "✨ Rephrase with AI"}
             </button>
             {rephraseErrorTitle && (
               <p className="rephrase-error">{rephraseErrorTitle}</p>
@@ -208,7 +241,10 @@ export default function CreateThreadForm({ onClose }) {
                   <button
                     type="button"
                     className="form-btn form-btn-primary form-btn-sm"
-                    onClick={() => { setTitle(rephrasedTitle); setRephrasedTitle(null); }}
+                    onClick={() => {
+                      setTitle(rephrasedTitle);
+                      setRephrasedTitle(null);
+                    }}
                   >
                     Accept
                   </button>
@@ -231,7 +267,10 @@ export default function CreateThreadForm({ onClose }) {
                   <button
                     type="button"
                     className="form-btn form-btn-primary form-btn-sm"
-                    onClick={() => { setTitle(improvedTitle); setImprovedTitle(null); }}
+                    onClick={() => {
+                      setTitle(improvedTitle);
+                      setImprovedTitle(null);
+                    }}
                   >
                     Accept
                   </button>
@@ -263,10 +302,12 @@ export default function CreateThreadForm({ onClose }) {
             <button
               type="button"
               className="form-btn form-btn-secondary form-btn-sm"
-              onClick={() => handleRephrase('content')}
+              onClick={() => handleRephrase("content")}
               disabled={!content.trim() || rephraseLoadingContent}
             >
-              {rephraseLoadingContent ? '⏳ Rephrasing...' : '✨ Rephrase with AI'}
+              {rephraseLoadingContent
+                ? "⏳ Rephrasing..."
+                : "✨ Rephrase with AI"}
             </button>
             {rephraseErrorContent && (
               <p className="rephrase-error">{rephraseErrorContent}</p>
@@ -279,7 +320,10 @@ export default function CreateThreadForm({ onClose }) {
                   <button
                     type="button"
                     className="form-btn form-btn-primary form-btn-sm"
-                    onClick={() => { setContent(rephrasedContent); setRephrasedContent(null); }}
+                    onClick={() => {
+                      setContent(rephrasedContent);
+                      setRephrasedContent(null);
+                    }}
                   >
                     Accept
                   </button>
@@ -302,7 +346,10 @@ export default function CreateThreadForm({ onClose }) {
                   <button
                     type="button"
                     className="form-btn form-btn-primary form-btn-sm"
-                    onClick={() => { setContent(improvedDescription); setImprovedDescription(null); }}
+                    onClick={() => {
+                      setContent(improvedDescription);
+                      setImprovedDescription(null);
+                    }}
                   >
                     Accept
                   </button>
@@ -330,7 +377,9 @@ export default function CreateThreadForm({ onClose }) {
             onChange={(e) => setTags(e.target.value)}
             required
           />
-          <p className="form-hint">Add comma-separated tags for the question.</p>
+          <p className="form-hint">
+            Add comma-separated tags for the question.
+          </p>
 
           {improvedTags && (
             <div className="rephrase-preview-card">
@@ -340,7 +389,10 @@ export default function CreateThreadForm({ onClose }) {
                 <button
                   type="button"
                   className="form-btn form-btn-primary form-btn-sm"
-                  onClick={() => { setTags(improvedTags); setImprovedTags(null); }}
+                  onClick={() => {
+                    setTags(improvedTags);
+                    setImprovedTags(null);
+                  }}
                 >
                   Accept
                 </button>
@@ -358,18 +410,21 @@ export default function CreateThreadForm({ onClose }) {
 
         <div className="form-group-custom">
           <label className="form-label-custom">Improve Your Question</label>
-          <p className="form-hint">Generate suggestions for title, description, and tags in one AI call.</p>
+          <p className="form-hint">
+            Generate suggestions for title, description, and tags in one AI
+            call.
+          </p>
           <button
             type="button"
             className="form-btn form-btn-secondary"
             onClick={handleImproveQuestion}
-            disabled={!title.trim() || !content.trim() || !tags.trim() || improveLoading}
+            disabled={
+              !title.trim() || !content.trim() || !tags.trim() || improveLoading
+            }
           >
-            {improveLoading ? '⏳ Improving...' : '🚀 Get AI Suggestions'}
+            {improveLoading ? "⏳ Improving..." : "🚀 Get AI Suggestions"}
           </button>
-          {improveError && (
-            <p className="rephrase-error">{improveError}</p>
-          )}
+          {improveError && <p className="rephrase-error">{improveError}</p>}
         </div>
 
         {/* Subreddit Selection */}
